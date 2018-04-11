@@ -12,7 +12,7 @@ It uses a file containing IP addresses or host names of Cassandra cluster nodes 
 
 Execution settings:
 The clusterCollector.sh has setting of connecting to cluster nodes using key file or id file. 
-If there is another method required for 'ssh' user is requested to change the script as applicable.
+If there is another method required for 'ssh', user is requested to change the script as applicable.
 Alternatively, the nodeCollector.sh can also be executed on individual nodes if clusterCollector.sh 
 is not useful in any case.
 

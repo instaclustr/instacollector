@@ -15,7 +15,7 @@ io_stats_file=$data_dir/io_stat.info
 copy_config_files()
 {
 echo "$ip : Copying files"
-local config_files=("$CONFIG_PATH/cassandra.yaml" "$CONFIG_PATH/cassandra-env.sh" "$LOG_PATH/system.log")
+local config_files=("$CONFIG_PATH/cassandra.yaml" "$CONFIG_PATH/cassandra-env.sh" "$LOG_PATH/system.log" "$CONFIG_PATH/jvm.options")
 
 for i in "${config_files[@]}"
 do
