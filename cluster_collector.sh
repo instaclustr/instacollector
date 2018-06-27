@@ -20,13 +20,13 @@ if [[ ! -f ${peers_file} || ! -s ${peers_file} ]]; then
     exit 1
 fi
 
-#Execute the nodeCollector on each node
+#Execute the node_collector on each node
 while read peer 
 do 
-        ssh -i $id_file $user@$peer "bash -s" < nodeCollector.sh &
+        ssh -i $id_file $user@$peer "bash -s" < node_collector.sh &
 done < "$peers_file"
 
-#waiting for all nodeCollectors to complete
+#waiting for all node_collectors to complete
 wait
 
 mkdir $INFO_DIR
