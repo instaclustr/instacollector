@@ -5,6 +5,9 @@
 CONFIG_PATH=/etc/cassandra
 LOG_PATH=/var/log/cassandra
 DATA_PATH=/var/lib/cassandra/data
+GC_LOGGING_ENABLED=yes
+CASSANDRA_HOME=/var/lib/cassandra
+GC_LOG_PATH=${CASSANDRA_HOME}/logs
 
 #Variables to hold data collection and system info.
 ip=$(hostname --ip-address)
@@ -16,6 +19,11 @@ copy_config_files()
 {
 echo "$ip : Copying files"
 local config_files=("$CONFIG_PATH/cassandra.yaml" "$CONFIG_PATH/cassandra-env.sh" "$LOG_PATH/system.log" "$CONFIG_PATH/jvm.options")
+
+if [ "$GC_LOGGING_ENABLED" == "yes" ]
+then
+	config_files+=( "$GC_LOG_PATH/gc.log*" )
+fi
 
 for i in "${config_files[@]}"
 do
