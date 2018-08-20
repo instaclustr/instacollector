@@ -54,7 +54,7 @@ eval timeout -sHUP 60s iostat -x -m -t -y -z 30 < /dev/null > $io_stats_file
 
 get_node_tool_info()
 {
-local commands=("nodetool info" "nodetool version" "nodetool status" "nodetool tpstats" "nodetool compactionstats" "nodetool gossipinfo" "nodetool cfstats")
+local commands=("nodetool info" "nodetool version" "nodetool status" "nodetool tpstats" "nodetool compactionstats" "nodetool gossipinfo" "nodetool cfstats" "nodetool ring")
 
 echo "$ip : Executing nodetool commands "
 
