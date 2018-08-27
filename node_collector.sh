@@ -4,7 +4,10 @@
 #Change these in case other than default.
 CONFIG_PATH=/etc/cassandra
 LOG_PATH=/var/log/cassandra
-DATA_PATH=/var/lib/cassandra/data
+
+#List of data directories; if more than one list all with delimiter ','
+#e.g. DATA_PATHS=path/to/dir1,path/to/dir2
+DATA_PATHS=/var/lib/cassandra/data/data
 GC_LOGGING_ENABLED=yes
 CASSANDRA_HOME=/var/lib/cassandra
 GC_LOG_PATH=${CASSANDRA_HOME}/logs
@@ -34,13 +37,18 @@ done
 get_size_info()
 {
 echo "$ip : Executing linux commands"
-local commands=("df -h $DATA_PATH" "du -h $DATA_PATH")
+local commands=("df -h" "du -h")
+local paths=($(echo "$DATA_PATHS" | tr ',' '\n'))
 
 for i in "${commands[@]}"
 do
-        echo "" >> $data_file
-        echo "$i" >> $data_file
-        eval $i >> $data_file
+    for j in "${paths[@]}"
+    do
+	echo "" >> $data_file
+	k=$(echo $i $j)
+	echo "$k" >> $data_file
+	eval $k >> $data_file
+    done
 done
 }
 
