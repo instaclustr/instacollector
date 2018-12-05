@@ -1,4 +1,6 @@
 
+This tool is used to collect information from a Cassandra cluster to add in problem diagnosis or review.
+
 Design info:
 There are two scripts used in instacollector tool. The 'node_collector.sh' is supposed to be executed on each Cassandra node. 
 The 'cluster_collector.sh' can be executed on a machine connected to Cassandra cluster e.g. user laptop or Jumpbox having connectivity 
@@ -19,4 +21,6 @@ The Cassandra configuration file locations, data directory location and other se
 User is requested to change those in node_collector.sh if other values are required.  
 
 Note: The scripts should be executed on bash shell.
+
+Please see https://www.instaclustr.com/support/documentation/announcements/instaclustr-open-source-project-status/ for Instaclustr support status of this project
 
