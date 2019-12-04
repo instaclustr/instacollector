@@ -21,7 +21,7 @@ io_stats_file=$data_dir/io_stat.info
 copy_config_files()
 {
 echo "$ip : Copying files"
-local config_files=("$CONFIG_PATH/cassandra.yaml" "$CONFIG_PATH/cassandra-env.sh" "$LOG_PATH/system.log" "$CONFIG_PATH/jvm.options")
+local config_files=("$CONFIG_PATH/cassandra.yaml" "$CONFIG_PATH/cassandra-env.sh" "$LOG_PATH/system.log" "$CONFIG_PATH/jvm.options" "$CONFIG_PATH/logback.xml")
 
 if [ "$GC_LOGGING_ENABLED" == "yes" ]
 then
