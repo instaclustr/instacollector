@@ -62,15 +62,19 @@ eval timeout -sHUP 60s iostat -x -m -t -y -z 30 < /dev/null > $io_stats_file
 
 get_node_tool_info()
 {
+#The nodetool commands and their respective filenames are on the same index in the arrays 
+#the total number of entries in the arrays is used in the for loop.
+    
 local commands=("nodetool info" "nodetool version" "nodetool status" "nodetool tpstats" "nodetool compactionstats -H" "nodetool gossipinfo" "nodetool cfstats -H" "nodetool ring")
+local filenames=("nodetool_info" "nodetool_version" "nodetool_status" "nodetool_tpstats" "nodetool_compactionstats" "nodetool_gossipinfo" "nodetool_cfstats" "nodetool_ring")
 
 echo "$ip : Executing nodetool commands "
 
-for i in "${commands[@]}"
+for i in {1..8}
 do
-    local cmd_file=$data_dir/"${i// /_}".info
+    local cmd_file=$data_dir/${filenames[i]}.info
     echo "" >> $cmd_file
-    eval $i >> $cmd_file
+    eval ${commands[i]} >> $cmd_file
 done
 
 }
