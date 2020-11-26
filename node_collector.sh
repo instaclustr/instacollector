@@ -13,7 +13,7 @@ CASSANDRA_HOME=/var/lib/cassandra
 GC_LOG_PATH=${CASSANDRA_HOME}/logs
 
 #Variables to hold data collection and system info.
-ip=$(hostname --ip-address)
+ip=$(hostname --ip-address | tr -d [:blank:])
 data_dir=/tmp/DataCollection_${ip} 
 data_file=$data_dir/disk.info
 io_stats_file=$data_dir/io_stat.info
