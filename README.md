@@ -21,7 +21,7 @@ Alternatively, the `node_collector.sh` can also be executed on individual nodes 
 The `node_collector.sh` supports optional arguments to provide username and password, to work with JMX authentication:
 
 ```
-echo "Usage: node_collector.sh -u username -p password"
+Usage: node_collector.sh -u username -p password 
     -u    Remote JMX agent username.
     -p    Password.
 ```
