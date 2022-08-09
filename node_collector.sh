@@ -60,7 +60,7 @@ get_io_stats()
 
 }
 
-get_node_tool_info() # Prameters: username, password
+get_nodetool() # Prameters: username, password
 {
     # Handles parameters
     nodetool_args=""
@@ -72,8 +72,8 @@ get_node_tool_info() # Prameters: username, password
     #The nodetool commands and their respective filenames are on the same index in the arrays 
     #the total number of entries in the arrays is used in the for loop.
         
-    local commands=("nodetool ${nodetool_args} info" "nodetool ${nodetool_args} version" "nodetool ${nodetool_args} status" "nodetool ${nodetool_args} tpstats" "nodetool ${nodetool_args} compactionstats -H" "nodetool ${nodetool_args} gossipinfo" "nodetool ${nodetool_args} cfstats -H" "nodetool ${nodetool_args} ring")
-    local filenames=("nodetool_info" "nodetool_version" "nodetool_status" "nodetool_tpstats" "nodetool_compactionstats" "nodetool_gossipinfo" "nodetool_cfstats" "nodetool_ring")
+    local commands=("nodetool ${nodetool_args} describecluster" "nodetool ${nodetool_args} info" "nodetool ${nodetool_args} version" "nodetool ${nodetool_args} status" "nodetool ${nodetool_args} tpstats" "nodetool ${nodetool_args} compactionstats -H" "nodetool ${nodetool_args} gossipinfo" "nodetool ${nodetool_args} cfstats -H" "nodetool ${nodetool_args} ring")
+    local filenames=("nodetool_describecluster" "nodetool_info" "nodetool_version" "nodetool_status" "nodetool_tpstats" "nodetool_compactionstats" "nodetool_gossipinfo" "nodetool_cfstats" "nodetool_ring")
 
     echo "$ip : Executing nodetool commands "
 
@@ -84,6 +84,37 @@ get_node_tool_info() # Prameters: username, password
         eval ${commands[i]} >> $cmd_file
     done
 
+}
+
+get_nodetool_tablehistograms() # Prameters: username, password
+{
+    # Handles parameters
+    nodetool_args=""
+    if ! [[ -z "${parameter_username}" && -z "${parameter_password}" ]];
+    then
+        cqlsh_args="-u $parameter_username -p $parameter_password"
+        nodetool_args="-u $parameter_username -pw $parameter_password"
+    fi
+ 
+    local cmd_file="${data_dir}/nodetool_tablehistograms.info"
+    echo "" >> $cmd_file
+
+    # Fetch all the keyspaces
+    cqlsh_keyspace_arr=($(cqlsh $(hostname -i) ${cqlsh_args} -e "DESC KEYSPACES;"))
+    cqlsh_keyspace_arr=("${cqlsh_keyspace_arr[@]//$'\n'/}")
+    for i in "${cqlsh_keyspace_arr[@]}"
+    do
+        # Fetch all the tables
+        cqlsh_tables_arr=($(cqlsh $(hostname -i) ${cqlsh_args} -e "USE ${i}; DESC TABLES;"))
+        cqlsh_tables_arr=("${cqlsh_tables_arr[@]//$'\n'/}")
+        for j in "${cqlsh_tables_arr[@]}"
+        do
+            eval "nodetool ${nodetool_args} tablehistograms ${i} ${j}" >> "$cmd_file" 2> /dev/null
+        done
+
+        unset cqlsh_tables_arr
+
+    done
 }
 
 
@@ -117,7 +148,8 @@ mkdir $data_dir
 get_io_stats &
 copy_config_files &
 get_size_info &
-get_node_tool_info $parameter_username $parameter_password &
+get_nodetool $parameter_username $parameter_password &
+get_nodetool_tablehistograms $parameter_username $parameter_password &
 
 echo "$ip : Waiting for background functions to complete"
 wait
