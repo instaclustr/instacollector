@@ -17,12 +17,28 @@ If the ssh key has passphrase enabled then please use `ssh-agent` and `ssh-add` 
 If there is another method required for `ssh`, user is requested to change the script as applicable.
 Alternatively, the `node_collector.sh` can also be executed on individual nodes if `cluster_collector.sh `is not useful in any case.
 
+The `cluster_collector.sh` supports optional arguments to provide username and password, to work with JMX authentication and is going to ask for the username to log into the cluster node OS, local path of the identity file and a file with the list of node IPs:
+
+```
+Usage: cluster_collector.sh [-u username -p password]
+    -u    JMX agent username. [optional]
+    -p    Password. [optional]
+```
+
 The `node_collector.sh` supports optional arguments to provide username and password, to work with JMX authentication:
 
 ```
 Usage: node_collector.sh [-u username -p password]
     -u    JMX agent username. [optional]
     -p    Password. [optional]
+```
+
+Bellow is an example of a file containing `the list of IPs` to collect the data (one IP per line):
+
+```
+10.10.2.196
+10.10.3.64
+10.10.3.148
 ```
 
 The Cassandra configuration file locations, data directory location and other settings are used as per Apache Cassandra default setup.
