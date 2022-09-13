@@ -21,14 +21,25 @@ io_stats_file=$data_dir/io_stat.info
 copy_config_files()
 {
     echo "$ip : Copying files"
-    local config_files=("$CONFIG_PATH/cassandra.yaml" "$CONFIG_PATH/cassandra-env.sh" "$LOG_PATH/system.log" "$CONFIG_PATH/jvm.options" "$CONFIG_PATH/logback.xml")
+    local config_files=("$CONFIG_PATH/cassandra.yaml" "$CONFIG_PATH/cassandra-env.sh" "$CONFIG_PATH/jvm.options" "$CONFIG_PATH/logback.xml")
+
+    for i in "${config_files[@]}"
+    do
+            cp $i $data_dir
+    done
+}
+
+copy_log_files()
+{
+    echo "$ip : Copying log files"
+    local log_files=("$LOG_PATH/system.log" "$LOG_PATH/debug.log")
 
     if [ "$GC_LOGGING_ENABLED" == "yes" ]
     then
-        config_files+=( "$GC_LOG_PATH/gc.log*" )
+        log_files+=( "$GC_LOG_PATH/gc.log*" )
     fi
 
-    for i in "${config_files[@]}"
+    for i in "${log_files[@]}"
     do
             cp $i $data_dir
     done
@@ -147,6 +158,7 @@ mkdir $data_dir
 #start execution 
 get_io_stats &
 copy_config_files &
+copy_log_files &
 get_size_info &
 get_nodetool $parameter_username $parameter_password &
 get_nodetool_tablehistograms $parameter_username $parameter_password &
