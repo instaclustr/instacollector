@@ -18,6 +18,7 @@ data_dir=/tmp/DataCollection_${ip}
 data_file=$data_dir/disk.info
 io_stats_file=$data_dir/io_stat.info
 cpu_info=$data_dir/cpu.info
+mem_info=$data_dir/mem.info
 data_file_count=$data_dir/sstable_count.info
 block_info=$data_dir/storage_device.info
 
@@ -81,10 +82,14 @@ echo "$ip : Executing lsblk command"
 lsblk > $block_info
 }
 
-get_cpu_info()
-{
+get_cpu_info() {
     echo "$ip : Executing /proc/cpuinfo command"
     cat /proc/cpuinfo > $cpu_info
+}
+
+get_mem_info() {
+    echo "$ip : Executing /proc/meminfo command"
+    cat /proc/meminfo > $mem_info
 }
 
 get_io_stats()
@@ -122,6 +127,7 @@ mkdir $data_dir
 #start execution 
 get_datafile_count &
 get_cpu_info &
+get_mem_info &
 get_io_stats &
 copy_config_files &
 get_size_info &
