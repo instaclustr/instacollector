@@ -7,7 +7,7 @@ LOG_PATH=/var/log/cassandra
 
 #List of data directories; if more than one list all with delimiter ','
 #e.g. DATA_PATHS=path/to/dir1,path/to/dir2
-DATA_PATHS=/var/lib/cassandra/data/data
+DATA_PATHS=/var/lib/cassandra/data
 GC_LOGGING_ENABLED=yes
 CASSANDRA_HOME=/var/lib/cassandra
 GC_LOG_PATH=${CASSANDRA_HOME}/logs
@@ -17,10 +17,10 @@ ip=$(hostname --ip-address | tr -d [:blank:])
 data_dir=/tmp/DataCollection_${ip} 
 data_file=$data_dir/disk.info
 io_stats_file=$data_dir/io_stat.info
-cpu_info=$data_dir/cpu.info
-mem_info=$data_dir/mem.info
-data_file_count=$data_dir/sstable_count.info
-block_info=$data_dir/storage_device.info
+cpu_info_file=$data_dir/cpu.info
+mem_info_file=$data_dir/mem.info
+sstable_count_file=$data_dir/sstable_count.info
+block_info_file=$data_dir/block.info
 
 #Managing Instacollector version
 ic_version=2
@@ -62,34 +62,32 @@ done
 }
 
 
-get_datafile_count()
-{
-echo "$ip : Executing sstables count command"
-local paths=($(echo "$DATA_PATHS" | tr ',' '\n'))
-for j in "${paths[@]}"
-do
-    find ${j} -maxdepth 3 -type f  | wc -l | xargs -n1 echo "Total sstable count : " >> $data_file_count
-    for i in `ls -1 ${j}`;
+get_sstable_count() {
+    echo "$ip : Executing sstables count command"
+    local paths=($(echo "$DATA_PATHS" | tr ',' '\n'))
+    for j in "${paths[@]}"
     do
-        find  ${j}/${i} -maxdepth 2 -type f | wc -l | xargs -n1 echo "Keyspace ${i}, Total number of sstables : " >> $data_file_count
+        find ${j} -maxdepth 3 -type f  | wc -l | xargs -n1 echo "Total sstable count : " >> $sstable_count_file
+        for i in `ls -1 ${j}`;
+        do
+            find  ${j}/${i} -maxdepth 2 -type f | wc -l | xargs -n1 echo "Keyspace ${i}, Total number of sstables : " >> $sstable_count_file
+        done
     done
-done
 }
 
-get_block_info()
-{
-echo "$ip : Executing lsblk command"
-lsblk > $block_info
+get_block_info() {
+    echo "$ip : Executing lsblk command"
+    lsblk > $block_info_file
 }
 
 get_cpu_info() {
     echo "$ip : Executing /proc/cpuinfo command"
-    cat /proc/cpuinfo > $cpu_info
+    cat /proc/cpuinfo > $cpu_info_file
 }
 
 get_mem_info() {
     echo "$ip : Executing /proc/meminfo command"
-    cat /proc/meminfo > $mem_info
+    cat /proc/meminfo > $mem_info_file
 }
 
 get_io_stats()
@@ -125,7 +123,7 @@ mv $data_dir $data_dir_`date +%Y%m%d%H%M` 2>/dev/null
 mkdir $data_dir
 
 #start execution 
-get_datafile_count &
+get_sstable_count &
 get_cpu_info &
 get_mem_info &
 get_io_stats &
