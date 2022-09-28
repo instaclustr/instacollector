@@ -17,6 +17,14 @@ ip=$(hostname --ip-address | tr -d [:blank:])
 data_dir=/tmp/DataCollection_${ip} 
 data_file=$data_dir/disk.info
 io_stats_file=$data_dir/io_stat.info
+cpu_info=$data_dir/cpu.info
+data_file_count=$data_dir/sstable_count.info
+block_info=$data_dir/storage_device.info
+
+#Managing Instacollector version
+ic_version=2
+echo "Instacollector version = ${ic_version}" > $data_dir/ic_version.info
+
 
 copy_config_files()
 {
@@ -25,7 +33,7 @@ local config_files=("$CONFIG_PATH/cassandra.yaml" "$CONFIG_PATH/cassandra-env.sh
 
 if [ "$GC_LOGGING_ENABLED" == "yes" ]
 then
-	config_files+=( "$GC_LOG_PATH/gc.log*" )
+    config_files+=( "$GC_LOG_PATH/gc.log*" )
 fi
 
 for i in "${config_files[@]}"
@@ -44,12 +52,39 @@ for i in "${commands[@]}"
 do
     for j in "${paths[@]}"
     do
-	echo "" >> $data_file
-	k=$(echo $i $j)
-	echo "$k" >> $data_file
-	eval $k >> $data_file
+        echo "" >> $data_file
+        k=$(echo $i $j)
+        echo "$k" >> $data_file
+        eval $k >> $data_file
     done
 done
+}
+
+
+get_datafile_count()
+{
+echo "$ip : Executing sstables count command"
+local paths=($(echo "$DATA_PATHS" | tr ',' '\n'))
+for j in "${paths[@]}"
+do
+    find ${j} -maxdepth 3 -type f  | wc -l | xargs -n1 echo "Total sstable count : " >> $data_file_count
+    for i in `ls -1 ${j}`;
+    do
+        find  ${j}/${i} -maxdepth 2 -type f | wc -l | xargs -n1 echo "Keyspace ${i}, Total number of sstables : " >> $data_file_count
+    done
+done
+}
+
+get_block_info()
+{
+echo "$ip : Executing lsblk command"
+lsblk > $block_info
+}
+
+get_cpu_info()
+{
+    echo "$ip : Executing /proc/cpuinfo command"
+    cat /proc/cpuinfo > $cpu_info
 }
 
 get_io_stats()
@@ -65,12 +100,12 @@ get_node_tool_info()
 #The nodetool commands and their respective filenames are on the same index in the arrays 
 #the total number of entries in the arrays is used in the for loop.
     
-local commands=("nodetool info" "nodetool version" "nodetool status" "nodetool tpstats" "nodetool compactionstats -H" "nodetool gossipinfo" "nodetool cfstats -H" "nodetool ring")
-local filenames=("nodetool_info" "nodetool_version" "nodetool_status" "nodetool_tpstats" "nodetool_compactionstats" "nodetool_gossipinfo" "nodetool_cfstats" "nodetool_ring")
+local commands=("nodetool info" "nodetool version" "nodetool status" "nodetool tpstats" "nodetool compactionstats -H" "nodetool gossipinfo" "nodetool cfstats -H" "nodetool ring" "nodetool describecluster")
+local filenames=("nodetool_info" "nodetool_version" "nodetool_status" "nodetool_tpstats" "nodetool_compactionstats" "nodetool_gossipinfo" "nodetool_cfstats" "nodetool_ring" "nodetool_describecluster")
 
 echo "$ip : Executing nodetool commands "
 
-for i in {1..8}
+for i in {0..8}
 do
     local cmd_file=$data_dir/${filenames[i]}.info
     echo "" >> $cmd_file
@@ -85,11 +120,13 @@ mv $data_dir $data_dir_`date +%Y%m%d%H%M` 2>/dev/null
 mkdir $data_dir
 
 #start execution 
+get_datafile_count &
+get_cpu_info &
 get_io_stats &
 copy_config_files &
 get_size_info &
 get_node_tool_info &
-
+get_block_info &
 
 echo "$ip : Waiting for background functions to complete"
 wait
