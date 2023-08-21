@@ -7,7 +7,7 @@ LOG_PATH=/var/log/cassandra
 
 #List of data directories; if more than one list all with delimiter ','
 #e.g. DATA_PATHS=path/to/dir1,path/to/dir2
-DATA_PATHS=/var/lib/cassandra/data/data
+DATA_PATHS=/var/lib/cassandra/data
 GC_LOGGING_ENABLED=yes
 CASSANDRA_HOME=/var/lib/cassandra
 GC_LOG_PATH=${CASSANDRA_HOME}/logs
@@ -17,17 +17,33 @@ ip=$(hostname --ip-address | tr -d [:blank:])
 data_dir=/tmp/DataCollection_${ip} 
 data_file=$data_dir/disk.info
 io_stats_file=$data_dir/io_stat.info
+cpu_info_file=$data_dir/cpu.info
+mem_info_file=$data_dir/mem.info
+sstable_count_file=$data_dir/sstable_count.info
+block_info_file=$data_dir/block.info
+
+#Managing Instacollector version
+ic_version=2
+echo "Instacollector version = ${ic_version}" > $data_dir/ic_version.info
+
 
 copy_config_files()
 {
     echo "$ip : Copying files"
     local config_files=("$CONFIG_PATH/cassandra.yaml" "$CONFIG_PATH/cassandra-env.sh" "$CONFIG_PATH/jvm.options" "$CONFIG_PATH/logback.xml")
 
+
+    if [ "$GC_LOGGING_ENABLED" == "yes" ]
+    then
+        config_files+=( "$GC_LOG_PATH/gc.log*" )
+    fi
+
     for i in "${config_files[@]}"
     do
             cp $i $data_dir
     done
 }
+
 
 copy_log_files()
 {
@@ -55,12 +71,41 @@ get_size_info()
     do
         for j in "${paths[@]}"
         do
-        echo "" >> $data_file
-        k=$(echo $i $j)
-        echo "$k" >> $data_file
-        eval $k >> $data_file
+            echo "" >> $data_file
+            k=$(echo $i $j)
+            echo "$k" >> $data_file
+            eval $k >> $data_file
         done
     done
+}
+
+
+get_sstable_count() {
+    echo "$ip : Executing sstables count command"
+    local paths=($(echo "$DATA_PATHS" | tr ',' '\n'))
+    for j in "${paths[@]}"
+    do
+        find ${j} -maxdepth 3 -type f  | wc -l | xargs -n1 echo "Total sstable count : " >> $sstable_count_file
+        for i in `ls -1 ${j}`;
+        do
+            find  ${j}/${i} -maxdepth 2 -type f | wc -l | xargs -n1 echo "Keyspace ${i}, Total number of sstables : " >> $sstable_count_file
+        done
+    done
+}
+
+get_block_info() {
+    echo "$ip : Executing lsblk command"
+    lsblk > $block_info_file
+}
+
+get_cpu_info() {
+    echo "$ip : Executing /proc/cpuinfo command"
+    cat /proc/cpuinfo > $cpu_info_file
+}
+
+get_mem_info() {
+    echo "$ip : Executing /proc/meminfo command"
+    cat /proc/meminfo > $mem_info_file
 }
 
 get_io_stats()
@@ -156,6 +201,9 @@ mv $data_dir $data_dir_`date +%Y%m%d%H%M` 2>/dev/null
 mkdir $data_dir
 
 #start execution 
+get_sstable_count &
+get_cpu_info &
+get_mem_info &
 get_io_stats &
 copy_config_files &
 copy_log_files &
