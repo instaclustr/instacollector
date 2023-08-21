@@ -1,5 +1,25 @@
 #!/bin/bash
 
+help_function()
+{
+   echo ""
+   echo "Usage: $0"
+   echo "Usage: $0 -u username -p password"
+   echo -e "\t-u    Remote JMX agent username."
+   echo -e "\t-p    Password."
+   exit 1 # Exit script after printing help
+}
+
+# Handles parameters
+while getopts "u:p:" opt
+do
+case "$opt" in
+    u ) parameter_username="$OPTARG" ;;
+    p ) parameter_password="$OPTARG" ;;
+    ? ) help_function ;; # Print help_function in case parameter is non-existent
+esac
+done
+
 #GLOBAL VARIABLES
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 INFO_DIR=/tmp/InstaCollection_$(date +%Y%m%d%H%M)
@@ -21,10 +41,27 @@ if [[ ! -f ${peers_file} || ! -s ${peers_file} ]]; then
 fi
 
 #Execute the node_collector on each node
-while read peer 
-do 
+if ! [[ -z "${parameter_username}" && -z "${parameter_password}" ]];
+then
+    while read peer 
+    do 
+        if [ -z "$(ssh-keygen -F $peer)" ]; then
+            ssh-keyscan -H $peer >> ~/.ssh/known_hosts
+        fi
+        
+        ssh -i $id_file $user@$peer "bash -s" < node_collector.sh -u $parameter_username -p $parameter_password &
+    done < "$peers_file"
+else
+    while read peer 
+    do 
+        if [ -z "$(ssh-keygen -F $peer)" ]; then
+            ssh-keyscan -H $peer >> ~/.ssh/known_hosts
+        fi
+        
         ssh -i $id_file $user@$peer "bash -s" < node_collector.sh &
-done < "$peers_file"
+    done < "$peers_file"
+fi
+
 
 #waiting for all node_collectors to complete
 wait
