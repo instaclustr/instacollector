@@ -109,6 +109,7 @@ copy_config_files() {
     echo "$ip : ${FUNCNAME[0]}  : Copying files"
     local config_files=(
         "$BROKER_CONFIG_PATH/server.properties"
+        "$BROKER_CONFIG_PATH/log4j.properties"
         "$BROKER_LOG_PATH/server.log"
         "$BROKER_LOG_PATH/kafkaServer.out"
         "$BROKER_LOG_PATH/kafka-authorizer.log"
