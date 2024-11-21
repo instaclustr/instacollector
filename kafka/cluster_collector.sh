@@ -64,20 +64,20 @@ if [[ "${kenv}" == "SSH" ]]; then
   read -p "Enter SSH username for login on Kafka cluster nodes (Press Enter for default admin) :" user
   [ -z "${user}" ] && user='admin'
 
-  #user='rahulchakrabarty'
-
   read -p "Enter Identity file path:" id_file
   if [[ ! -f ${id_file} || ! -s ${id_file} ]]; then
       echo "$id_file File not found!" 
       exit 1
   fi
 
-  #id_file='/Users/rahulchakrabarty-instaclustr/.ssh/rahulchakrabarty-instaclustr'
 elif [[ "${kenv}" == "Docker" ]]; then
+  echo "Default directory to store the files is : /tmp"
+  echo "Hit Enter key to choose the default path, else please enter a specific path."
+  echo " Please make sure the directory is writable."
   read -p "Enter directory path to store the output:" docker_home
 
   if [ -z "docker_directory" ]; then
-    echo "Provided directory cannot be empty"
+    docker_home= "/tmp"
     exit 1
   fi
 else
@@ -85,6 +85,7 @@ else
   exit 1
 fi
 
+echo  "Please make sure you have a command config files inside the container/VM to make use of it"
 read -p "Enter path of the command config file:" config_file
 
 read -p "Enter file containing ip addresses/host/container names of Kafka cluster nodes:" peers_file
@@ -93,7 +94,6 @@ if [[ ! -f ${peers_file} || ! -s ${peers_file} ]]; then
     exit 1
 fi
 
-#peers_file='./hosts'
 
 echo "environment $kenv"
 
@@ -114,7 +114,7 @@ else
       fi
       echo "Copying file node_collector.sh to container" 
       docker cp ./node_collector.sh $peer:docker_directory/
-      docker exec $peer /bin/bash -c "sh docker_directory/node_collector.sh $peer $config_file" &
+      docker exec $peer sh "docker_directory/node_collector.sh -ip $peer -c $config_file" &
   done < "$peers_file"
 fi
 

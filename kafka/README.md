@@ -4,7 +4,6 @@ This tool is used to collect information from a Kafka cluster to add in problem 
 Note: 
 * This won't work on versions before kafka 2
 * User is requested to change the path values in `node_collector.sh` before running any of the scripts, as by default the script uses `Kafka configuration file locations`, `data directory location`, and other setting locations as per **Apache Kafka** default setup.
-* The term "VM" in environment of script `cluster_collector.sh` means if running in kernel.
 
 # Design info:
 There are two scripts used in instacollector tool for Kafka.
@@ -15,8 +14,8 @@ KAFKA_HOME=/opt/kafka
 ```
 2. `cluster_collector.sh`: to be executed on a machine connected to Kafka cluster e.g. user laptop with a running Docker or a running VM. It executes node_collector.sh on each Kafka node using ssh. The cluster_collector.sh requires 4 user inputs :
 ```
-   * Enter your kafka environment (VM/Docker) :
-     * [If VM]
+   * Enter your kafka environment (SSH/Docker) :
+     * [If SSH]
        * Enter username for login on Kafka cluster nodes (Press Enter for default admin) :
        * Enter Identity file path: (the ssh key file in your local machine which is used to connect to the VMs)
      * [If Docker]
@@ -29,6 +28,17 @@ KAFKA_HOME=/opt/kafka
 The `cluster_collector.sh` has setting of connecting to cluster nodes using the provided ssh key file or an id file.
 
 If the ssh key has passphrase enabled then please use `ssh-agent` & `ssh-add` commands to add the passphrase before running `cluster_collector.sh` script.
+example:
+```
+Use the following command to execute the ssh-agent commands and enable ssh-agent if not already done so:
+
+-> eval `ssh-agent`
+
+By default, ssh agent automatically should load the keys from .ssh folder, but you can do so manually too.
+
+-> ssh-add path/to/key
+
+```
 
 If there is another method required for `ssh`, user is requested to change the script as applicable.
 
