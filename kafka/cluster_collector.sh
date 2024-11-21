@@ -56,12 +56,12 @@ clear
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 INFO_DIR=/tmp/InstaCollection_$(date +%Y%m%d%H%M)
 
-#Collect environment info (VM/docker)
-read -p "Enter your kafka environment (vm/docker) :" kenv
+#Collect environment info (VM/Docker)
+read -p "Enter your Kafka environment (SSH/Docker) :" kenv
 
-if [[ "${kenv}" == "vm" ]]; then
+if [[ "${kenv}" == "SSH" ]]; then
   #Collect user info.
-  read -p "Enter username for login on Kafka cluster nodes (Press Enter for default admin) :" user
+  read -p "Enter SSH username for login on Kafka cluster nodes (Press Enter for default admin) :" user
   [ -z "${user}" ] && user='admin'
 
   #user='rahulchakrabarty'
@@ -73,11 +73,11 @@ if [[ "${kenv}" == "vm" ]]; then
   fi
 
   #id_file='/Users/rahulchakrabarty-instaclustr/.ssh/rahulchakrabarty-instaclustr'
-elif [[ "${kenv}" == "docker" ]]; then
-  read -p "Enter docker home directory :" docker_home
+elif [[ "${kenv}" == "Docker" ]]; then
+  read -p "Enter directory path to store the output:" docker_home
 
-  if [ -z "$docker_home" ]; then
-    echo "Docker home directory cannot be empty"
+  if [ -z "docker_directory" ]; then
+    echo "Provided directory cannot be empty"
     exit 1
   fi
 else
@@ -98,7 +98,7 @@ fi
 echo "environment $kenv"
 
 #Execute the node_collector on each node or container
-if [ "$kenv" == "vm" ]; then
+if [ "$kenv" == "SSH" ]; then
   while read peer 
   do 
           if [[ -z "$peer" ]]; then
@@ -113,8 +113,8 @@ else
         break
       fi
       echo "Copying file node_collector.sh to container" 
-      docker cp ./node_collector.sh $peer:$docker_home/
-      docker exec $peer /bin/bash -c "sh $docker_home/node_collector.sh $peer $config_file" &
+      docker cp ./node_collector.sh $peer:docker_directory/
+      docker exec $peer /bin/bash -c "sh docker_directory/node_collector.sh $peer $config_file" &
   done < "$peers_file"
 fi
 

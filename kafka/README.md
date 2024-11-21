@@ -7,21 +7,21 @@ Note:
 * The term "VM" in environment of script `cluster_collector.sh` means if running in kernel.
 
 # Design info:
-There are two scripts used in instacollector tool for kafka.
+There are two scripts used in instacollector tool for Kafka.
 
 1. `node_collector.sh`: supposed to be executed on each Kafka node. It executes Linux and Kafka commands and copies configuration and log files required for cluster health checks. The user needs to modify the `KAFKA_HOME` path inside the script as per their configurations, the default value used is:
 ```
 KAFKA_HOME=/opt/kafka
 ```
-2. `cluster_collector.sh`: to be executed on a machine connected to Kafka cluster e.g. user laptop with a running docker or a running VM. It executes node_collector.sh on each Kafka node using ssh. The cluster_collector.sh requires 4 user inputs :
+2. `cluster_collector.sh`: to be executed on a machine connected to Kafka cluster e.g. user laptop with a running Docker or a running VM. It executes node_collector.sh on each Kafka node using ssh. The cluster_collector.sh requires 4 user inputs :
 ```
-   * Enter your kafka environment (vm/docker) :
+   * Enter your kafka environment (VM/Docker) :
      * [If VM]
        * Enter username for login on Kafka cluster nodes (Press Enter for default admin) :
        * Enter Identity file path: (the ssh key file in your local machine which is used to connect to the VMs)
-     * [If docker]
-       * Enter docker home directory:
-   * Enter path of the command config file: (kafka command-config file location on the kafka brokers)
+     * [If Docker]
+       * Enter Docker home directory:
+   * Enter path of the command config file: (Kafka command-config file location on the Kafka brokers)
    * Enter file containing ip addresses/host/container names of Kafka cluster nodes: (the hosts file in your local machine)
 ```
 *******************
