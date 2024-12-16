@@ -75,26 +75,27 @@
 # -- Global Variables
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 INFO_DIR=/tmp/InstaCollection_$(date +%Y%m%d%H%M)
-clear
 
 # -- Environment info (SSH/Docker)
-read -p "Enter your Kafka environment [SSH|Docker] :" kenv
+read -p "Enter your Kafka environment [SSH|Docker]: " kenv
 
 # -- SSH info
 if [[ "${kenv}" == "SSH" ]]; then
   # -- Collect user info
-  read -p "Enter SSH username for login on Kafka cluster nodes: [admin] " user
+  read -p "Enter SSH username for login on Kafka cluster nodes [admin]: " user
   [ -z "${user}" ] && user='admin'
 
-  read -p "Enter Identity file path:" id_file
-  if [[ ! -f ${id_file} || ! -s ${id_file} ]]; then
-      echo "$id_file File not found!" 
-      exit 1
+  read -p "Enter Identity file path [none]: " id_file
+  if [[ ! -z $id_file ]]; then
+    if [[ ! -f ${id_file} || ! -s ${id_file} ]]; then
+        echo "$id_file File not found!" 
+        exit 1
+    fi
   fi
 
 # -- Docker info
 elif [[ "${kenv}" == "Docker" ]]; then
-  read -p  "Specify a writable directory inside the container to store the output: [/tmp]" docker_home
+  read -p  "Specify a writable directory inside the container to store the output [/tmp]: " docker_home
   if [ -z "docker_home" ]; then
     docker_home= "/tmp"
   fi
@@ -106,12 +107,15 @@ else
 fi
 
 # -- Command Config
-read -p "Enter path of the command config file: [none]" config_file
+read -p "Enter path of the command config file [none]: " config_file
 if [ -z "${config_file}" ]; then
     unset config_file
   fi
 
-read -p "Enter file containing ip addresses/host/container names of Kafka cluster nodes:" peers_file
+read -p "Enter file containing ip addresses/host/container names of Kafka cluster nodes [./peers.txt]: " peers_file
+if [[ -z $peers_file ]]; then
+  peers_file="./peers.txt"
+fi
 if [[ ! -f ${peers_file} || ! -s ${peers_file} ]]; then
     echo "$peers_file File not found!"
     exit 1
@@ -127,15 +131,23 @@ echo "Using environment $kenv"
 if [ "$kenv" == "SSH" ]; then
   while read peer 
   do 
-          if [[ -z "$peer" ]]; then
-            break
-          fi
+    if [[ -z "$peer" ]]; then
+      break
+    fi
 
-          if [[ -z "$config_file"]]; then 
-            ssh -i $id_file $user@$peer "bash -s" < node_collector.sh -ip $peer &
-          else
-            ssh -i $id_file $user@$peer "bash -s" < node_collector.sh -ip $peer -c $config_file &
-          fi
+    if [[ -z $id_file ]]; then
+      if [[ -z "$config_file" ]]; then 
+        ssh $user@$peer "bash -s" < node_collector.sh -ip $peer
+      else
+        ssh $user@$peer "bash -s" < node_collector.sh -ip $peer -c $config_file
+      fi
+    else
+      if [[ -z "$config_file" ]]; then 
+        ssh -i $id_file $user@$peer "bash -s" < node_collector.sh -ip $peer &
+      else
+        ssh -i $id_file $user@$peer "bash -s" < node_collector.sh -ip $peer -c $config_file &
+      fi
+    fi
   done < "$peers_file"
 
 # -- Execute the node_collector with Docker
@@ -148,7 +160,7 @@ else
       echo "Copying file node_collector.sh to container" 
       docker cp ./node_collector.sh $peer:$docker_home/
       
-      if [[ -z "$config_file"]]; then 
+      if [[ -z "$config_file" ]]; then 
         docker exec $peer sh "$docker_home/node_collector.sh -ip $peer" &
       else
         docker cp $config_file $peer:$docker_home/
@@ -170,7 +182,12 @@ if [ "$kenv" == "SSH" ]; then
         break
       fi
       mkdir $INFO_DIR/$peer
-      scp -i $id_file $user@$peer:/tmp/InstaCollection.tar.gz $INFO_DIR/$peer/InstaCollection_$peer.tar.gz &
+
+      if [[ -z $id_file ]]; then
+        scp $user@$peer:/tmp/InstaCollection.tar.gz $INFO_DIR/$peer/InstaCollection_$peer.tar.gz
+      else
+        scp -i $id_file $user@$peer:/tmp/InstaCollection.tar.gz $INFO_DIR/$peer/InstaCollection_$peer.tar.gz &
+      fi
 
   done < "$peers_file"
 

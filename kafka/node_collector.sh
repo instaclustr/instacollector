@@ -67,9 +67,9 @@ while [[ $# -gt 0 ]]; do
     # unknown option
     *)
         if [ -z "$ip" ]; then
-            ip=$(hostname -I | tail -n -1 | tr -d [:blank:])
+            ip=$(hostname -I | tail -n -1 | awk '{ print $1 }' | tr -d [:blank:])
         fi
-        echo "$ip : main               : WARN : ignoring unknown argument '$1'"
+        echo "$ip : main               : WARN : ignoring unknown argument '$1'";
         shift
         ;;
     esac
@@ -77,7 +77,7 @@ done
 
 # -- Calculated Defaults
 if [ -z "$ip" ]; then
-    ip=$(hostname -I | tail -n -1 | tr -d [:blank:])
+    ip=$(hostname -I | tail -n -1 | awk '{ print $1 }' | tr -d [:blank:])
 fi
 
 if [ -z "$debug" ]; then
@@ -262,7 +262,8 @@ get_kafka_cli_info() {
     # -- List of commands & filenames to save output
     local commands=(
         "$BROKER_BIN_PATH/kafka-topics$command_file_extension --version"
-        "$BROKER_BIN_PATH/kafka-metadata-quorum$command_file_extension --bootstrap-server $ip:$KAFKA_CLIENT_PORT --describe"
+        "$BROKER_BIN_PATH/kafka-metadata-quorum$command_file_extension --bootstrap-server $ip:$KAFKA_CLIENT_PORT describe --status"
+        "$BROKER_BIN_PATH/kafka-metadata-quorum$command_file_extension --bootstrap-server $ip:$KAFKA_CLIENT_PORT describe --replication"
         "$BROKER_BIN_PATH/kafka-broker-api-versions$command_file_extension --bootstrap-server $ip:$KAFKA_CLIENT_PORT"
         "$BROKER_BIN_PATH/kafka-topics$command_file_extension --bootstrap-server $ip:$KAFKA_CLIENT_PORT --describe"
         "$BROKER_BIN_PATH/kafka-consumer-groups$command_file_extension --bootstrap-server $ip:$KAFKA_CLIENT_PORT --describe --all-groups --verbose"
@@ -271,7 +272,8 @@ get_kafka_cli_info() {
         "kafka-versions-output.txt"
         "kafka-metadata-quorum-output.txt"
         "kafka-api-versions-output.txt"
-        "kafka-topics-describe-output.txt"
+        "kafka-topics-describe-status-output.txt"
+        "kafka-topics-describe-replication-output.txt"
         "consumer-groups-output.txt"
     )
 
