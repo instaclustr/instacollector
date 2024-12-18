@@ -270,10 +270,10 @@ get_kafka_cli_info() {
     )
     local filenames=(
         "kafka-versions-output.txt"
-        "kafka-metadata-quorum-output.txt"
+        "kafka-metadata-quorum-status-output.txt"
+        "kafka-metadata-quorum-replication-output.txt"
         "kafka-api-versions-output.txt"
-        "kafka-topics-describe-status-output.txt"
-        "kafka-topics-describe-replication-output.txt"
+        "kafka-topics-describe-output.txt"
         "consumer-groups-output.txt"
     )
 

@@ -96,8 +96,8 @@ if [[ "${kenv}" == "SSH" ]]; then
 # -- Docker info
 elif [[ "${kenv}" == "Docker" ]]; then
   read -p  "Specify a writable directory inside the container to store the output [/tmp]: " docker_home
-  if [ -z "docker_home" ]; then
-    docker_home= "/tmp"
+  if [ -z "$docker_home" ]; then
+    docker_home="/tmp"
   fi
 
 # -- Unknown selection
@@ -161,10 +161,10 @@ else
       docker cp ./node_collector.sh $peer:$docker_home/
       
       if [[ -z "$config_file" ]]; then 
-        docker exec $peer sh "$docker_home/node_collector.sh -ip $peer" &
+        docker exec $peer bash $docker_home/node_collector.sh -ip $peer &
       else
         docker cp $config_file $peer:$docker_home/
-        docker exec $peer sh "$docker_home/node_collector.sh -ip $peer -c $config_file" &
+        docker exec $peer bash $docker_home/node_collector.sh -ip $peer -c $config_file &
       fi
   done < "$peers_file"
 fi
